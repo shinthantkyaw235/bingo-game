@@ -18,8 +18,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-/* DATABASE CONNECTION POOL (Cloud Hosted DB - Fixed Name to 'db') */
-// createPool သုံးပေးခြင်းဖြင့် အောက်က db.promise() Logic တွေပါ အကုန် အလုပ်လုပ်သွားမှာ ဖြစ်ပါတယ်
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,        
@@ -29,9 +27,12 @@ const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  // 👇 ဒီ SSL အပိုင်းလေးကို မဖြစ်မနေ ထည့်ပေးရပါမယ် ဆရာကြီး!
   ssl: {
     rejectUnauthorized: false
+  },
+  // 👇 Aiven MySQL 8+ ရဲ့ တံခါးကို အတင်းဖွင့်ခိုင်းမယ့် စနစ်ကို ဒီနေရာမှာ ထည့်ပေးရပါမယ် ဆရာကြီး!
+  authPlugins: {
+    mysql_clear_password: () => () => Buffer.from(process.env.DB_PASSWORD + '\0')
   }
 });
 
@@ -42,7 +43,7 @@ db.getConnection((err, connection) => {
         console.log(err);
     } else {
         console.log("🚀 MySQL Connected Successfully to Aiven!");
-        connection.release(); // ချိတ်ဆက်မှု စမ်းသပ်ပြီးရင် connection ကို ပြန်လွှတ်ပေးခြင်း
+        connection.release();
     }
 });
 /* 🎰 BINGO GAME STATE (SERVER-SIDE MEMORY) */
