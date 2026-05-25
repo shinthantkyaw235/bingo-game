@@ -19,13 +19,12 @@ app.use(express.json());
 app.use(express.static("public"));
 
 /* DATABASE CONNECTION (Cloud Hosted DB) */
-const db = mysql.createConnection({
-    host: process.env.DB_HOST || "localhost",
-    user: process.env.DB_USER || "root",
-    password: process.env.DB_PASSWORD || "root",
-    database: process.env.DB_NAME || "bingo",
-    port: process.env.DB_PORT || 3309,
-    ssl: { rejectUnauthorized: false } // Cloud MySQL ချိတ်ဖို့အတွက် ဒါလေး သေချာပေါက် ပါရပါမယ်
+const connection = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,        // 👈 Render က Environment Variable ကို ဖတ်ဖို့ ဒါမျိုးရေးရပါမယ်
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
 /* CONNECT DATABASE */
