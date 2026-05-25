@@ -28,7 +28,11 @@ const db = mysql.createPool({
   port: process.env.DB_PORT,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  // 👇 ဒီ SSL အပိုင်းလေးကို မဖြစ်မနေ ထည့်ပေးရပါမယ် ဆရာကြီး!
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 /* TEST DATABASE CONNECTION */
@@ -41,7 +45,6 @@ db.getConnection((err, connection) => {
         connection.release(); // ချိတ်ဆက်မှု စမ်းသပ်ပြီးရင် connection ကို ပြန်လွှတ်ပေးခြင်း
     }
 });
-
 /* 🎰 BINGO GAME STATE (SERVER-SIDE MEMORY) */
 let playerSockets = new Set();
 let gameHistory = [];
