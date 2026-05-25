@@ -18,22 +18,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-/* DATABASE CONNECTION (Cloud Hosted DB) */
-const connection = mysql.createConnection({
+/* DATABASE CONNECTION POOL (Cloud Hosted DB - Fixed Name to 'db') */
+// createPool သုံးပေးခြင်းဖြင့် အောက်က db.promise() Logic တွေပါ အကုန် အလုပ်လုပ်သွားမှာ ဖြစ်ပါတယ်
+const db = mysql.createPool({
   host: process.env.DB_HOST,
-  user: process.env.DB_USER,        // 👈 Render က Environment Variable ကို ဖတ်ဖို့ ဒါမျိုးရေးရပါမယ်
+  user: process.env.DB_USER,        
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  port: process.env.DB_PORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-/* CONNECT DATABASE */
-db.connect((err) => {
+/* TEST DATABASE CONNECTION */
+db.getConnection((err, connection) => {
     if (err) {
-        console.log("Database Connection Failed");
+        console.log("❌ Database Connection Failed");
         console.log(err);
     } else {
-        console.log("MySQL Connected");
+        console.log("🚀 MySQL Connected Successfully to Aiven!");
+        connection.release(); // ချိတ်ဆက်မှု စမ်းသပ်ပြီးရင် connection ကို ပြန်လွှတ်ပေးခြင်း
     }
 });
 
@@ -251,7 +256,7 @@ app.post("/api/verify-stampcode", (req, res) => {
     });
 });
 
-// 🎰 SPIN/WHEEL API (လူ ၂၀ စစ်ဆေးချက်ကို သားကြီးရဲ့ Logic အတိုင်း သေသေချာချာ ပြန်ဖွင့်ထားပါသည်)
+// 🎰 SPIN/WHEEL API
 app.post('/api/spin', async (req, res) => { 
     const { userid, sessionid } = req.body;
     if (!userid || !sessionid) return res.status(400).json({ status: 'error', message: 'User ID နှင့် Session ID လိုအပ်ပါသည်!' });
@@ -413,7 +418,6 @@ app.get('/api/user/:id', (req, res) => {
     });
 });
 
-/* START SERVER */
 /* START SERVER (Dynamic Port for Hosting) */
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
